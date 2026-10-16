@@ -83,6 +83,7 @@ class LaravelTranslationRepositoryTest extends TestCase
             true
         ));
     }
+
     public function testKeepsCommentsWhenAddingMissingKeys(): void
     {
         mkdir($this->directory . '/tr');
@@ -110,5 +111,4 @@ PHP
             'zulu' => 'Son',
         ], require $filename);
     }
-
 }
