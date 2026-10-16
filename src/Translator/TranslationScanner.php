@@ -1,7 +1,12 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Translator;
 
+use PhpParser\Node;
+use PhpParser\NodeFinder;
+use PhpParser\ParserFactory;
 use Translator\Translator\Exception\InvalidDirectoriesConfiguration;
 use Translator\Translator\Exception\InvalidExtensionsConfiguration;
 use Translator\Translator\Exception\InvalidFunctionsConfiguration;
@@ -12,7 +17,7 @@ class TranslationScanner
      * @param string[] $extensions
      * @param string[] $directories
      * @param string[] $functions
-     * @return Translation[]
+     * @return array<string, Translation>
      * @throws InvalidDirectoriesConfiguration
      * @throws InvalidExtensionsConfiguration
      * @throws InvalidFunctionsConfiguration
@@ -31,70 +36,126 @@ class TranslationScanner
             throw new InvalidFunctionsConfiguration();
         }
 
-        $ext = implode(',', $extensions);
+        $translations = [];
+        foreach ($directories as $directory) {
+            $translations = array_merge(
+                $translations,
+                $this->scanDirectory($directory, array_values($extensions), array_values($functions))
+            );
+        }
 
-        return array_reduce(
-            $directories,
-            function (array $collection, string $directory) use ($ext, $functions): array {
-                return array_merge(
-                    $collection,
-                    $this->scanDirectory($directory, $ext, $functions)
-                );
-            },
-            []
-        );
+        return $translations;
     }
 
     /**
      * @param string[] $functions
      * @return Translation[]
      */
-    private function scanDirectory(string $path, string $extensions, array $functions): array
+    /** @param list<string> $extensions
+     *  @param list<string> $functions
+     *  @return array<string, Translation>
+     */
+    private function scanDirectory(string $path, array $extensions, array $functions): array
     {
-        $files = glob_recursive("{$path}/*.{{$extensions}}", GLOB_BRACE);
+        if (!is_dir($path)) {
+            return [];
+        }
 
-        return array_reduce($files, function (array $keys, $file) use ($functions): array {
-            $content = $this->getFileContent($file);
+        $translations = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS)
+        );
 
-            $keysFromFunctions = array_reduce(
-                $functions,
-                function (array $keys, string $function) use ($content): array {
-                    return array_merge($keys, $this->getKeysFromFunction($function, $content));
-                },
-                []
-            );
+        foreach ($iterator as $file) {
+            if (!$file instanceof \SplFileInfo || !$file->isFile()) {
+                continue;
+            }
 
-            return array_merge(
-                $keys,
-                $keysFromFunctions
-            );
-        }, []);
-    }
+            $matchesExtension = false;
+            foreach ($extensions as $extension) {
+                if (str_ends_with($file->getFilename(), '.' . ltrim($extension, '.'))) {
+                    $matchesExtension = true;
+                    break;
+                }
+            }
 
-    private function getFileContent(string $filePath): string
-    {
-        $content = (string) file_get_contents($filePath) ?? '';
+            if (!$matchesExtension) {
+                continue;
+            }
 
-        return str_replace("\n", ' ', $content);
+            $content = file_get_contents($file->getPathname());
+            if ($content === false) {
+                throw new \RuntimeException('Unable to read source file: ' . $file->getPathname());
+            }
+
+            $keys = str_ends_with($file->getFilename(), '.php')
+                && !str_ends_with($file->getFilename(), '.blade.php')
+                ? $this->getPhpKeys($content, $functions)
+                : $this->getTemplateKeys($content, $functions);
+            $translations = array_merge($translations, $keys);
+        }
+
+        return $translations;
     }
 
     /**
-     * @return string[]
+     * @param list<string> $functions
+     * @return array<string, Translation>
      */
-    private function getKeysFromFunction(string $functionName, string $content): array
+    private function getPhpKeys(string $content, array $functions): array
     {
-        preg_match_all("#{$functionName} *\( *((['\"])((?:\\\\\\2|.)*?)\\2)#", $content, $matches);
+        try {
+            $statements = (new ParserFactory())->createForNewestSupportedVersion()->parse($content);
+        } catch (\PhpParser\Error $exception) {
+            throw new \RuntimeException('Unable to parse PHP source: ' . $exception->getMessage(), 0, $exception);
+        }
 
-        $matches = $matches[1] ?? [];
+        $keys = [];
+        $calls = (new NodeFinder())->findInstanceOf($statements ?? [], Node\Expr\FuncCall::class);
+        foreach ($calls as $call) {
+            if (!$call->name instanceof Node\Name || !in_array($call->name->toString(), $functions, true)) {
+                continue;
+            }
 
-        return array_reduce($matches, function (array $keys, string $match) {
-            $quote = $match[0];
-            $match = trim($match, $quote);
-            $key = ($quote === '"') ? stripcslashes($match) : str_replace(["\\'", "\\\\"], ["'", "\\"], $match);
+            $argument = $call->args[0] ?? null;
+            if (!$argument instanceof Node\Arg || !$argument->value instanceof Node\Scalar\String_) {
+                continue;
+            }
 
-            return $key ?
-                array_merge($keys, [$key => new Translation($key, '')]) :
-                $keys;
-        }, []);
+            $key = $argument->value->value;
+            if ($key !== '') {
+                $keys[$key] = new Translation($key, '');
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * @param list<string> $functions
+     * @return array<string, Translation>
+     */
+    private function getTemplateKeys(string $content, array $functions): array
+    {
+        $keys = [];
+        foreach ($functions as $functionName) {
+            $function = preg_quote($functionName, '#');
+            $pattern = '#(?<![\w$>:\x5c])' . $function
+                . '\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*)\1\s*(?=,|\))#s';
+            preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
+
+            foreach ($matches as $match) {
+                $raw = $match[2];
+                $key = $match[1] === '"'
+                    ? stripcslashes($raw)
+                    : str_replace(["\\'", "\\\\"], ["'", "\\"], $raw);
+
+                if ($key !== '') {
+                    $keys[$key] = new Translation($key, '');
+                }
+            }
+        }
+
+        return $keys;
     }
 }

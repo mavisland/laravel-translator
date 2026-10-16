@@ -1,9 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Infra;
 
 use Translator\Infra\Exception\InvalidTranslationFile;
-use Translator\Infra\Exception\TranslationFileDoesNotExistForLanguage;
 use Translator\Infra\Exception\UnableToSaveTranslationKeyAlreadyExists;
 use Translator\Translator\ConfigLoader;
 use Translator\Translator\Translation;
@@ -22,7 +23,6 @@ class LaravelJsonTranslationRepository implements TranslationRepository
     }
 
     /**
-     * @throws TranslationFileDoesNotExistForLanguage
      * @throws InvalidTranslationFile
      */
     public function exists(Translation $translation, string $language): bool
@@ -34,7 +34,6 @@ class LaravelJsonTranslationRepository implements TranslationRepository
 
     /**
      * @throws InvalidTranslationFile
-     * @throws TranslationFileDoesNotExistForLanguage
      * @throws UnableToSaveTranslationKeyAlreadyExists
      */
     public function save(Translation $translation, string $language): void
@@ -55,7 +54,6 @@ class LaravelJsonTranslationRepository implements TranslationRepository
     }
 
     /**
-     * @throws TranslationFileDoesNotExistForLanguage
      * @throws InvalidTranslationFile
      * @return array<string>
      */
@@ -78,14 +76,13 @@ class LaravelJsonTranslationRepository implements TranslationRepository
     /**
      * @return string[]
      * @throws InvalidTranslationFile
-     * @throws TranslationFileDoesNotExistForLanguage
      */
     private function readFile(string $language): array
     {
         $filename = $this->getFileNameForLanguage($language);
 
         if (!file_exists($filename)) {
-            throw new TranslationFileDoesNotExistForLanguage($language);
+            return [];
         }
 
         $content = file_get_contents($filename);
@@ -96,8 +93,18 @@ class LaravelJsonTranslationRepository implements TranslationRepository
 
         $translations = json_decode($content, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (
+            json_last_error() !== JSON_ERROR_NONE
+            || !is_array($translations)
+            || (array_is_list($translations) && $translations !== [])
+        ) {
             throw new InvalidTranslationFile($language);
+        }
+
+        foreach ($translations as $key => $value) {
+            if (!is_string($key) || !is_string($value)) {
+                throw new InvalidTranslationFile($language);
+            }
         }
 
         return $translations;
@@ -105,13 +112,29 @@ class LaravelJsonTranslationRepository implements TranslationRepository
 
     private function writeFile(string $language): void
     {
-        $content = $this->fileCache[$language];
-        ksort($content);
+        $filename = $this->getFileNameForLanguage($language);
 
-        file_put_contents(
-            $this->getFileNameForLanguage($language),
-            json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-        );
+        // Read the on-disk values again before writing. Existing translations always win.
+        // This also protects against changes made after the in-memory cache was populated.
+        $existing = $this->readFile($language);
+        $content = array_replace($this->fileCache[$language], $existing);
+        ksort($content);
+        $this->fileCache[$language] = $content;
+        $directory = dirname($filename);
+
+        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
+            throw new \RuntimeException("Unable to create translation directory: {$directory}");
+        }
+
+        if (
+            file_put_contents(
+                $filename,
+                json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n",
+                LOCK_EX
+            ) === false
+        ) {
+            throw new \RuntimeException("Unable to write translation file: {$filename}");
+        }
     }
 
     private function useKeyAsDefaultValue(Translation $translation, string $language): bool

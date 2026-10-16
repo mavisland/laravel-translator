@@ -1,10 +1,11 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Tests\Unit\Infra;
 
 use PHPUnit\Framework\TestCase;
 use Translator\Infra\Exception\InvalidTranslationFile;
-use Translator\Infra\Exception\TranslationFileDoesNotExistForLanguage;
 use Translator\Infra\Exception\UnableToSaveTranslationKeyAlreadyExists;
 use Translator\Infra\LaravelJsonTranslationRepository;
 use Translator\Translator\ConfigLoader;
@@ -17,7 +18,11 @@ class LaravelJsonTranslationRepositoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->translationPath = realpath(__DIR__ . '/../../Fixtures/translations');
+        $this->translationPath = sys_get_temp_dir() . '/laravel-translator-' . bin2hex(random_bytes(8));
+        mkdir($this->translationPath, 0700);
+        foreach (glob(__DIR__ . '/../../Fixtures/translations/*.json') ?: [] as $fixture) {
+            copy($fixture, $this->translationPath . '/' . basename($fixture));
+        }
 
         $configLoader = $this->setupConfigLoader();
 
@@ -26,10 +31,16 @@ class LaravelJsonTranslationRepositoryTest extends TestCase
         $this->repository = new LaravelJsonTranslationRepository($configLoader);
     }
 
-    /**
-     * @return \PHPUnit\Framework\MockObject\MockObject|ConfigLoader
-     */
-    protected function setupConfigLoader()
+    protected function tearDown(): void
+    {
+        foreach (glob($this->translationPath . '/*') ?: [] as $file) {
+            unlink($file);
+        }
+        rmdir($this->translationPath);
+        parent::tearDown();
+    }
+
+    protected function setupConfigLoader(): ConfigLoader
     {
         $configLoader = $this->createMock(ConfigLoader::class);
         $configLoader
@@ -39,14 +50,12 @@ class LaravelJsonTranslationRepositoryTest extends TestCase
         return $configLoader;
     }
 
-    public function testWhenFileForGivenLanguageDoesNotExistThenThrowException(): void
+    public function testWhenFileForGivenLanguageDoesNotExistThenReturnsFalse(): void
     {
         $translation = new Translation('', '');
         $language = 'nl';
 
-        $this->expectException(TranslationFileDoesNotExistForLanguage::class);
-
-        $this->repository->exists($translation, $language);
+        $this->assertFalse($this->repository->exists($translation, $language));
     }
 
     public function testWhenFileForGivenLanguageDoesNotContainAValidJsonContentThenThrowException(): void

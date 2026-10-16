@@ -1,5 +1,9 @@
-.phpunit.result.cache
 /.idea/
+/tests/var
 /vendor/
 .DS_Store
-/tests/var
+.lerd.yaml
+.node-version
+.php-version
+.phpunit.result.cache
+/.phpunit.cache/

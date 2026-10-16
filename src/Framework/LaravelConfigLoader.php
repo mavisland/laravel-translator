@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Framework;
 
@@ -33,7 +35,7 @@ class LaravelConfigLoader implements ConfigLoader
      */
     public function useKeysAsDefaultValue(): bool
     {
-        return !! $this->load('use_keys_as_default_value');
+        return !!$this->load('use_keys_as_default_value');
     }
 
     /**
@@ -79,7 +81,7 @@ class LaravelConfigLoader implements ConfigLoader
             return [];
         }
 
-        return $values;
+        return array_values(array_filter($values, 'is_string'));
     }
 
     private function loadConfigInString(string $key): string
@@ -94,9 +96,8 @@ class LaravelConfigLoader implements ConfigLoader
     }
 
     /**
-     * @return string|string[]
      */
-    private function load(string $key)
+    private function load(string $key): mixed
     {
         return config("translator.{$key}");
     }

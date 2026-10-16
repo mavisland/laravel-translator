@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Tests\Unit\Framework;
 
@@ -17,7 +19,7 @@ class HelperTest extends TestCase
     {
         $fixturesDir = realpath("{$this->testDir}/Fixtures/Glob");
 
-        $files = glob_recursive("{$fixturesDir}/*.txt", GLOB_BRACE);
+        $files = glob_recursive("{$fixturesDir}/*.txt");
 
         $this->assertEquals([
             '/Fixtures/Glob/file1.txt',

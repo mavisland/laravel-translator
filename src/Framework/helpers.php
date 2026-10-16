@@ -1,12 +1,14 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 if (!function_exists('lang')) {
     /**
      * @codeCoverageIgnore
      * @param string[] $replace
-     * @return string|array<string|int|float>|null
+     * @return string|array<array-key, mixed>|null
      */
-    function lang(string $key, array $replace = [], ?string $locale = null)
+    function lang(string $key, array $replace = [], ?string $locale = null): string|array|null
     {
         return __($key, $replace, $locale);
     }
@@ -24,17 +26,20 @@ if (!function_exists('glob_recursive')) {
             $files = [];
         }
 
-        $directories = glob(dirname($pattern) . '/*', GLOB_ONLYDIR | GLOB_NOSORT) ?? [];
+        $directories = glob(dirname($pattern) . '/*', GLOB_ONLYDIR | GLOB_NOSORT) ?: [];
 
         if (!$directories) {
             $directories = [];
         }
 
-        return array_reduce($directories, function (array $files, string $dir) use ($pattern, $flags): array {
-            return array_merge(
+        /** @var list<string> $directories */
+        foreach ($directories as $dir) {
+            $files = array_merge(
                 $files,
                 glob_recursive($dir . '/' . basename($pattern), $flags)
             );
-        }, $files);
+        }
+
+        return array_values(array_filter($files, 'is_string'));
     }
 }

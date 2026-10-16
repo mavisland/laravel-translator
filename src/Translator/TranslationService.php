@@ -1,9 +1,8 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Translator;
-
-use Translator\Translator\Exception\InvalidDirectoriesConfiguration;
-use Translator\Translator\Exception\InvalidExtensionsConfiguration;
 
 class TranslationService
 {
@@ -19,8 +18,8 @@ class TranslationService
     }
 
     /**
-     * @throws InvalidDirectoriesConfiguration
-     * @throws InvalidExtensionsConfiguration
+     * @throws \Translator\Translator\Exception\InvalidDirectoriesConfiguration
+     * @throws \Translator\Translator\Exception\InvalidExtensionsConfiguration
      */
     public function scanAndSaveNewKeys(): void
     {
@@ -38,21 +37,22 @@ class TranslationService
      */
     private function storeTranslations(array $translations): void
     {
-        array_map(function (Translation $translation): void {
+        foreach ($translations as $translation) {
             $this->storeTranslation($translation);
-        }, $translations);
+        }
     }
 
     private function storeTranslation(Translation $translation): void
     {
-        $languages = $this->config->languages();
+        $languages = array_unique(array_filter([
+            ...$this->config->languages(),
+            $this->config->defaultLanguage(),
+        ], static fn(string $language): bool => $language !== ''));
 
-        array_map(function (string $language) use ($translation): void {
-            if ($this->repository->exists($translation, $language)) {
-                return;
+        foreach ($languages as $language) {
+            if (!$this->repository->exists($translation, $language)) {
+                $this->repository->save($translation, $language);
             }
-
-            $this->repository->save($translation, $language);
-        }, $languages);
+        }
     }
 }

@@ -1,8 +1,9 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Tests\Unit\Translator;
 
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Translator\Translator\ConfigLoader;
 use Translator\Translator\Translation;
@@ -60,12 +61,21 @@ class TranslationServiceTest extends TestCase
             [new Translation("Double quoted string using \"double quotes\", and C-style escape sequences.\n\t\\", '')],
         ];
 
+        $saved = [];
         $this->repository
             ->expects($this->exactly(8))
             ->method('save')
-            ->withConsecutive(...$translations);
+            ->willReturnCallback(static function (Translation $translation) use (&$saved): void {
+                $saved[] = $translation->getKey();
+            });
 
         $this->service->scanAndSaveNewKeys();
+
+        $expected = array_map(
+            static fn(array $item): string => $item[0]->getKey(),
+            $translations
+        );
+        self::assertEqualsCanonicalizing($expected, $saved);
     }
 
     public function testWhenGivenTranslationAlreadyExistsThenDoNotOverride(): void

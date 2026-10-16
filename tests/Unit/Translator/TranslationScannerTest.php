@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Tests\Unit\Translator;
 
@@ -140,5 +142,70 @@ class TranslationScannerTest extends TestCase
             ],
             $translations
         );
+    }
+
+    public function testSkipsDynamicAndConcatenatedTranslationKeys(): void
+    {
+        $directory = sys_get_temp_dir() . '/translator-scan-' . bin2hex(random_bytes(8));
+        mkdir($directory, 0700);
+        $filename = $directory . '/sample.php';
+
+        try {
+            file_put_contents(
+                $filename,
+                <<<'PHP'
+<?php
+__('messages.title');
+__('messages.' . $field);
+__('messages.' . 'subtitle');
+__('messages.' . strtoupper($field));
+__($dynamic);
+lang('messages.description');
+__('messages.submit', ['name' => $name]);
+PHP
+            );
+
+            $keys = $this->scanner->scan(['php'], [$directory], ['__', 'lang']);
+            self::assertEqualsCanonicalizing(
+                ['messages.title', 'messages.description', 'messages.submit'],
+                array_keys($keys)
+            );
+        } finally {
+            unlink($filename);
+            rmdir($directory);
+        }
+    }
+    public function testPhpAstIgnoresCommentsStringsAndDynamicExpressions(): void
+    {
+        $directory = sys_get_temp_dir() . '/translator-ast-' . bin2hex(random_bytes(8));
+        mkdir($directory, 0700);
+        $filename = $directory . '/sample.php';
+
+        try {
+            file_put_contents(
+                $filename,
+                <<<'PHP'
+<?php
+// __('ignored.comment')
+$text = "__('ignored.string')";
+__('messages.title');
+__('messages.' . $field);
+__($dynamic);
+__('messages.submit', ['name' => $name]);
+function nested(): void {
+    __('messages.nested');
+}
+PHP
+            );
+
+            $keys = $this->scanner->scan(['php'], [$directory], ['__']);
+            self::assertEqualsCanonicalizing(
+                ['messages.title', 'messages.submit', 'messages.nested'],
+                array_keys($keys)
+            );
+        } finally {
+            unlink($filename);
+            rmdir($directory);
+        }
     }
 }

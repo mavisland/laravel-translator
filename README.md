@@ -1,144 +1,96 @@
-# Laravel-Translator
+# Laravel Translator
 
-Laravel-translator scans your project `resources/view/` and `app/` folder to find `@lang(...)`, `lang(...)` and `__(...)`
-functions, then it create keys based on first parameter value and insert into json translation files.
+Synchronize missing Laravel translation keys and report possibly unused keys in PHP and JSON language files.
 
-### Installation
+Supports PHP 8.2+ and Laravel 11, 12, and 13.
 
-You just have to require the package
+## Installation
 
 ```bash
-composer require thiagocordeiro/laravel-translator
+composer require mavisland/laravel-translator
+php artisan vendor:publish --provider="Translator\\Framework\\TranslatorServiceProvider"
 ```
 
-This package register the provider automatically,
-[See laravel package discover](https://laravel.com/docs/5.5/packages#package-discovery).
+For development installations before a stable release, use `composer require mavisland/laravel-translator:dev-develop` with an appropriate Composer repository configuration.
 
-After composer finish installing, you'll be able to update your project translation keys running the following command:
+## Commands
 
 ```bash
 php artisan translator:update
+php artisan translator:unused
 ```
 
-if for any reason artisan can't find `translator:update` command, you can register the provider manually on your `config/app.php` file:
+- `translator:update`: scans configured source directories for literal translation keys and adds missing keys to each configured language. Existing translation values are preserved. New values are empty by default; JSON keys are sorted alphabetically. Dotted group keys such as `__('pagination.next')` are stored in `lang/<locale>/pagination.php`, unless that exact key already exists in the locale's JSON file.
+- `translator:unused`: reads existing `<locale>.json` and `<locale>/**/*.php` files and lists keys not found by the source scanner, sorted by locale and key. **Read-only:** no keys are deleted.
+
+**Caution:** The unused report is a static-analysis aid, not proof a key can be deleted. Dynamic calls (for example, `__('messages.' . $type)`), keys used outside the configured scan directories, and translations referenced by other applications may be reported as unused. Review results manually.
+
+## Configuration
+
+Publish `config/translator.php` using the installation command above, then customize it for your project:
 
 ```php
 return [
-    ...
-    'providers' => [
-        ...
-        Translator\Framework\TranslatorServiceProvider::class,
-        ...
-    ]
-]
-```
-
-### Usage
-
-First you have to create your json translation files:
-
-```
-app/
-  resources/
-    lang/
-      pt-br.json
-      es.json
-      fr.json
-      ...
-```
-
-Keep working as you are used to, when laravel built-in translation funcion can't find given key,
-it'll return itself, so if you create english keys, you don't need to create an english translation.
-
-```php-template
-blade:
-<html>
-    @lang('Hello World')
-    {{ lang('Hello World') }}
-    {{ __('Hello World') }}
-</html>
-
-controllers, models, etc.:
-<?php
-    __('Hello World');
-    lang('Hello World');
-```
-
-also you can use params on translation keys
-
-```php
-@lang('Welcome, :name', ['Arthur Dent'])
-```
-
-### Output
-
-`translator:update` command will scan your code to identify new translation keys, then it'll update all json files on `app/resources/lang/` folder appending this keys.
-
-```json
-{
-    "Hello World": "Hola Mundo",
-    "Welcome, :name": "Bienvenido, :name",
-    "Just scanned key": ""
-}
-```
-In **Laravel 9** the 'lang' directory is moved up one level so u need to change the output.
-
-First publish config:
-```bash
-php artisan vendor:publish --provider="Translator\Framework\TranslatorServiceProvider"
-```
-And change output to:
-```php
-  'output' => base_path('lang'),
-```
-
-### Customization
-
-You can change the default path of views to scan and the output of the json translation files.
-
-First, publish the configuration file.
-
-```bash
-php artisan vendor:publish --provider="Translator\Framework\TranslatorServiceProvider"
-```
-
-On ``config/translator.php`` you can change the default values of `languages`, `default_language`, `use_keys_as_default_value`, `directories`, `functions`, `output` or if you have a different implementation to save/load translations, you can create your own`translation_repository`and replace on`container` config
-
-```php
-use Translator\Framework\LaravelConfigLoader;
-use Translator\Infra\LaravelJsonTranslationRepository;
-
-return [
-    'languages' => ['pt-br', 'es'],
-    'directories' => [
-        app_path(),
-        resource_path('views'),
-    ],
+    'languages' => ['tr', 'en'],
+    'default_language' => 'tr',
+    'use_keys_as_default_value' => false,
+    'directories' => [app_path(), resource_path('views')],
+    'output' => lang_path(),
+    'extensions' => ['php'],
     'functions' => ['lang', '__'],
-    'output' => resource_path('lang'),
     'container' => [
-        'config_loader' => LaravelConfigLoader::class,
-        'translation_repository' => LaravelJsonTranslationRepository::class,
+        'config_loader' => \\Translator\\Framework\\LaravelConfigLoader::class,
+        'translation_repository' => \\Translator\\Infra\\LaravelTranslationRepository::class,
     ],
 ];
 ```
 
-## Using your keys as the default value
+The scanner recognizes literal `__('Hello')`, `lang('Hello')`, and equivalent configured function calls. Blade `@lang('Hello')` is also supported by the template scanner. Dynamic expressions cannot be fully resolved by static scanning.
 
-For the default language, most of the time you wish to use the key values as the default translation value. You can enable this by settingd the config option `use_keys_as_default_value` to `true`, and defining a `default_language` to your language. This is by default configured to `en`, but can be overruled by setting the `default_language` key in your config.
+The output location is configured through `output`; use `lang_path()` for modern Laravel installations. The default configuration uses Turkish and English; change `languages` and `default_language` as needed.
 
-### Tips
+## Example
 
-- Laravel `trans(...)` function doesn't use json files for translation, so you'd better using `__(...)` or it's alias `lang(...)` on php files and `@lang(...)` or `{{ lang(...) }}` on blade files.
-- Do not use variables on translation functions, the scanner just get the key if it's a string
+Source:
 
-### Todo
+```php
+__('Hello World');
+__('pagination.next');
+```
 
-- View for translate phrases;
-- Integration with some translation api (google or deepl) for automatic translations
+After `php artisan translator:update`, new keys have empty values:
 
+```json
+{
+    "Hello World": ""
+}
+```
 
-### Supporting
-If you feel like supporting changes then you can send donations to the address below.
+`lang/tr/pagination.php`:
 
-Bitcoin Address: bc1qfyudlcxqnvqzxxgpvsfmadwudg4znk2z3asj9h
+```php
+<?php
+
+return [
+    'next' => '',
+];
+```
+
+Translations already present in the files are not overwritten. Running the command again should not change unchanged JSON content.
+
+## Development checks
+
+```bash
+composer install
+composer run tests
+```
+
+This runs PHP_CodeSniffer, PHPStan, and PHPUnit. Run the checks before publishing a release.
+
+## Release
+
+After the tests pass, create and push a version tag (for example `v1.0.0`) and submit the public GitHub repository URL to [Packagist](https://packagist.org/packages/submit). Packagist publication is a separate step from pushing commits to GitHub.
+
+## Credits
+
+Originally created by **Thiago Cordeiro dos Santos**. This maintained fork is developed by **Tanju Yildiz**. The original MIT copyright notice is retained in `LICENSE` as required by its terms.
