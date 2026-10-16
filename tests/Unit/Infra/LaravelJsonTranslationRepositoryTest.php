@@ -4,7 +4,6 @@ namespace Translator\Tests\Unit\Infra;
 
 use PHPUnit\Framework\TestCase;
 use Translator\Infra\Exception\InvalidTranslationFile;
-use Translator\Infra\Exception\TranslationFileDoesNotExistForLanguage;
 use Translator\Infra\Exception\UnableToSaveTranslationKeyAlreadyExists;
 use Translator\Infra\LaravelJsonTranslationRepository;
 use Translator\Translator\ConfigLoader;
@@ -39,14 +38,12 @@ class LaravelJsonTranslationRepositoryTest extends TestCase
         return $configLoader;
     }
 
-    public function testWhenFileForGivenLanguageDoesNotExistThenThrowException(): void
+    public function testWhenFileForGivenLanguageDoesNotExistThenReturnsFalse(): void
     {
         $translation = new Translation('', '');
         $language = 'nl';
 
-        $this->expectException(TranslationFileDoesNotExistForLanguage::class);
-
-        $this->repository->exists($translation, $language);
+        $this->assertFalse($this->repository->exists($translation, $language));
     }
 
     public function testWhenFileForGivenLanguageDoesNotContainAValidJsonContentThenThrowException(): void
