@@ -78,4 +78,30 @@ class LaravelTranslationRepositoryTest extends TestCase
             true
         ));
     }
+    public function testKeepsCommentsWhenAddingMissingKeys(): void
+    {
+        mkdir($this->directory . '/tr');
+        $filename = $this->directory . '/tr/messages.php';
+        file_put_contents($filename, <<<'PHP'
+<?php
+
+return [
+    // Existing title translation
+    'title' => 'Başlık',
+    'zulu' => 'Son',
+];
+PHP
+        );
+
+        $this->repository->save(new Translation('messages.alpha', ''), 'tr');
+
+        $contents = file_get_contents($filename);
+        self::assertStringContainsString('// Existing title translation', $contents);
+        self::assertSame([
+            'alpha' => '',
+            'title' => 'Başlık',
+            'zulu' => 'Son',
+        ], require $filename);
+    }
+
 }
