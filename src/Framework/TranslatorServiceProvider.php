@@ -29,7 +29,7 @@ class TranslatorServiceProvider extends ServiceProvider
         $custom = base_path("config/translator.php");
 
         $this->mergeConfigFrom($default, 'translator');
-        $this->publishes([$default => $custom], 'config');
+        $this->publishes([$default => $custom], 'translator-config');
     }
 
     private function setupContainer(): void
