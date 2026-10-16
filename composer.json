@@ -1,12 +1,12 @@
 {
-  "name": "thiagocordeiro/laravel-translator",
+  "name": "mavisland/laravel-translator",
   "description": "Search translation keys and insert into json to be translated",
   "type": "project",
   "license": "MIT",
   "authors": [
     {
-      "name": "Thiago Cordeiro",
-      "email": "thiagoguetten@gmail.com"
+      "name": "Tanju Yildiz",
+      "email": "ben@tanjuyildiz.com"
     }
   ],
   "require": {
