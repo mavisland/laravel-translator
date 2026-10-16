@@ -37,21 +37,19 @@ class TranslationService
      */
     private function storeTranslations(array $translations): void
     {
-        array_map(function (Translation $translation): void {
+        foreach ($translations as $translation) {
             $this->storeTranslation($translation);
-        }, $translations);
+        }
     }
 
     private function storeTranslation(Translation $translation): void
     {
         $languages = $this->config->languages();
 
-        array_map(function (string $language) use ($translation): void {
-            if ($this->repository->exists($translation, $language)) {
-                return;
+        foreach ($languages as $language) {
+            if (!$this->repository->exists($translation, $language)) {
+                $this->repository->save($translation, $language);
             }
-
-            $this->repository->save($translation, $language);
-        }, $languages);
+        }
     }
 }
