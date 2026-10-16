@@ -31,11 +31,13 @@ if (!function_exists('glob_recursive')) {
         }
 
         /** @var list<string> $directories */
-        return array_reduce($directories, function (array $files, string $dir) use ($pattern, $flags): array {
-            return array_merge(
+        foreach ($directories as $dir) {
+            $files = array_merge(
                 $files,
                 glob_recursive($dir . '/' . basename($pattern), $flags)
             );
-        }, $files);
+        }
+
+        return array_values(array_filter($files, 'is_string'));
     }
 }
