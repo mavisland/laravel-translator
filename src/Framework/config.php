@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare(strict_types = 1);
 
 use Translator\Framework\LaravelConfigLoader;
 use Translator\Infra\LaravelTranslationRepository;
