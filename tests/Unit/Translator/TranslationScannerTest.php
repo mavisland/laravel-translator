@@ -143,6 +143,7 @@ class TranslationScannerTest extends TestCase
             $translations
         );
     }
+
     public function testSkipsDynamicAndConcatenatedTranslationKeys(): void
     {
         $directory = sys_get_temp_dir() . '/translator-scan-' . bin2hex(random_bytes(8));
