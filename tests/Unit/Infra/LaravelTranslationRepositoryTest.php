@@ -50,7 +50,10 @@ class LaravelTranslationRepositoryTest extends TestCase
     public function testPreservesExistingValuesAndSortsNestedKeys(): void
     {
         mkdir($this->directory . '/tr');
-        file_put_contents($this->directory . '/tr/messages.php', "<?php return ['zulu' => 'Existing', 'form' => ['z' => 'Keep']];");
+        file_put_contents(
+            $this->directory . '/tr/messages.php',
+            "<?php return ['zulu' => 'Existing', 'form' => ['z' => 'Keep']];"
+        );
 
         $this->repository->save(new Translation('messages.form.a', ''), 'tr');
         $this->repository->save(new Translation('messages.alpha', ''), 'tr');
