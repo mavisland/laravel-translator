@@ -1,0 +1,60 @@
+{
+  "name": "thiagocordeiro/laravel-translator",
+  "description": "Search translation keys and insert into json to be translated",
+  "type": "project",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Thiago Cordeiro",
+      "email": "thiagoguetten@gmail.com"
+    }
+  ],
+  "require": {
+    "php": "^7.4|^8.0",
+    "ext-json": "*",
+    "laravel/framework": ">=5.4.0"
+  },
+  "require-dev": {
+    "slevomat/coding-standard": "^6.0",
+    "phpstan/phpstan": "^0.12",
+    "phpunit/phpunit": "^9.0"
+  },
+  "scripts": {
+    "test:cs": "vendor/bin/phpcs --colors -ps",
+    "test:stan": "vendor/bin/phpstan analyse src --level=max --ansi",
+    "test:unit": "vendor/bin/phpunit --testdox --color=always",
+    "tests": [
+      "@test:cs",
+      "@test:stan",
+      "@test:unit"
+    ]
+  },
+  "config": {
+    "platform": {
+      "php": "7.4.28"
+    },
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Translator\\": "src/"
+    },
+    "files": [
+      "src/Framework/helpers.php"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Translator\\Tests\\": "tests"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Translator\\Framework\\TranslatorServiceProvider"
+      ]
+    }
+  }
+}
