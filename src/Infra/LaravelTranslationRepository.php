@@ -69,7 +69,7 @@ class LaravelTranslationRepository extends LaravelJsonTranslationRepository
         ];
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<array-key, mixed> */
     private function readPhp(string $filename): array
     {
         if (!is_file($filename)) {
@@ -84,14 +84,4 @@ class LaravelTranslationRepository extends LaravelJsonTranslationRepository
         return $data;
     }
 
-    private function sortRecursive(array &$data): void
-    {
-        ksort($data, SORT_STRING);
-        foreach ($data as &$value) {
-            if (is_array($value)) {
-                $this->sortRecursive($value);
-            }
-        }
-        unset($value);
-    }
 }
