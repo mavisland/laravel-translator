@@ -100,6 +100,12 @@ class LaravelJsonTranslationRepository implements TranslationRepository
             throw new InvalidTranslationFile($language);
         }
 
+        foreach ($translations as $key => $value) {
+            if (!is_string($key) || !is_string($value)) {
+                throw new InvalidTranslationFile($language);
+            }
+        }
+
         return $translations;
     }
 
