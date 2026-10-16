@@ -32,7 +32,14 @@ class TranslatorServiceProvider extends ServiceProvider
 
     private function setupContainer(): void
     {
-        $this->app->bind(ConfigLoader::class, config('translator.container.config_loader'));
-        $this->app->bind(TranslationRepository::class, config('translator.container.translation_repository'));
+        $configLoader = config('translator.container.config_loader');
+        $repository = config('translator.container.translation_repository');
+
+        if (!is_string($configLoader) || !is_string($repository)) {
+            throw new \InvalidArgumentException('Translator container bindings must be class names.');
+        }
+
+        $this->app->bind(ConfigLoader::class, $configLoader);
+        $this->app->bind(TranslationRepository::class, $repository);
     }
 }
