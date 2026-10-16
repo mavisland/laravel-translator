@@ -23,7 +23,6 @@ class LaravelJsonTranslationRepository implements TranslationRepository
     }
 
     /**
-     * @throws TranslationFileDoesNotExistForLanguage
      * @throws InvalidTranslationFile
      */
     public function exists(Translation $translation, string $language): bool
@@ -35,7 +34,6 @@ class LaravelJsonTranslationRepository implements TranslationRepository
 
     /**
      * @throws InvalidTranslationFile
-     * @throws TranslationFileDoesNotExistForLanguage
      * @throws UnableToSaveTranslationKeyAlreadyExists
      */
     public function save(Translation $translation, string $language): void
@@ -56,7 +54,6 @@ class LaravelJsonTranslationRepository implements TranslationRepository
     }
 
     /**
-     * @throws TranslationFileDoesNotExistForLanguage
      * @throws InvalidTranslationFile
      * @return array<string>
      */
@@ -79,7 +76,6 @@ class LaravelJsonTranslationRepository implements TranslationRepository
     /**
      * @return string[]
      * @throws InvalidTranslationFile
-     * @throws TranslationFileDoesNotExistForLanguage
      */
     private function readFile(string $language): array
     {
@@ -97,7 +93,11 @@ class LaravelJsonTranslationRepository implements TranslationRepository
 
         $translations = json_decode($content, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE || !is_array($translations) || array_is_list($translations) && $translations !== []) {
+        if (
+            json_last_error() !== JSON_ERROR_NONE
+            || !is_array($translations)
+            || (array_is_list($translations) && $translations !== [])
+        ) {
             throw new InvalidTranslationFile($language);
         }
 
