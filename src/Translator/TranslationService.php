@@ -44,7 +44,10 @@ class TranslationService
 
     private function storeTranslation(Translation $translation): void
     {
-        $languages = $this->config->languages();
+        $languages = array_unique(array_filter([
+            ...$this->config->languages(),
+            $this->config->defaultLanguage(),
+        ], static fn(string $language): bool => $language !== ''));
 
         foreach ($languages as $language) {
             if (!$this->repository->exists($translation, $language)) {
