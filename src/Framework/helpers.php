@@ -8,7 +8,7 @@ if (!function_exists('lang')) {
      * @param string[] $replace
      * @return string|array<array-key, mixed>|null
      */
-    function lang(string $key, array $replace = [], ?string $locale = null)
+    function lang(string $key, array $replace = [], ?string $locale = null): string|array|null
     {
         return __($key, $replace, $locale);
     }
