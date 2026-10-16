@@ -40,10 +40,7 @@ class LaravelJsonTranslationRepositoryTest extends TestCase
         parent::tearDown();
     }
 
-    /**
-     * @return \\PHPUnit\Framework\MockObject\MockObject|ConfigLoader
-     */
-    protected function setupConfigLoader()
+    protected function setupConfigLoader(): ConfigLoader
     {
         $configLoader = $this->createMock(ConfigLoader::class);
         $configLoader
