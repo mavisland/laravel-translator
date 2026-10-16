@@ -85,7 +85,7 @@ class LaravelJsonTranslationRepository implements TranslationRepository
         $filename = $this->getFileNameForLanguage($language);
 
         if (!file_exists($filename)) {
-            throw new TranslationFileDoesNotExistForLanguage($language);
+            return [];
         }
 
         $content = file_get_contents($filename);
@@ -96,7 +96,7 @@ class LaravelJsonTranslationRepository implements TranslationRepository
 
         $translations = json_decode($content, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($translations) || array_is_list($translations) && $translations !== []) {
             throw new InvalidTranslationFile($language);
         }
 
@@ -108,10 +108,20 @@ class LaravelJsonTranslationRepository implements TranslationRepository
         $content = $this->fileCache[$language];
         ksort($content);
 
-        file_put_contents(
-            $this->getFileNameForLanguage($language),
-            json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
-        );
+        $filename = $this->getFileNameForLanguage($language);
+        $directory = dirname($filename);
+
+        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
+            throw new \\RuntimeException("Unable to create translation directory: {$directory}");
+        }
+
+        if (file_put_contents(
+            $filename,
+            json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\\n",
+            LOCK_EX
+        ) === false) {
+            throw new \\RuntimeException("Unable to write translation file: {$filename}");
+        }
     }
 
     private function useKeyAsDefaultValue(Translation $translation, string $language): bool
