@@ -16,10 +16,14 @@ class LaravelTranslationRepository extends LaravelJsonTranslationRepository
 
     public function exists(Translation $translation, string $language): bool
     {
+        if (parent::exists($translation, $language)) {
+            return true;
+        }
+
         $target = $this->phpTarget($translation->getKey(), $language);
 
         if ($target === null) {
-            return parent::exists($translation, $language);
+            return false;
         }
 
         [$filename, $keys] = $target;
@@ -36,15 +40,15 @@ class LaravelTranslationRepository extends LaravelJsonTranslationRepository
 
     public function save(Translation $translation, string $language): void
     {
+        if ($this->exists($translation, $language)) {
+            throw new \Translator\Infra\Exception\UnableToSaveTranslationKeyAlreadyExists($translation, $language);
+        }
+
         $target = $this->phpTarget($translation->getKey(), $language);
 
         if ($target === null) {
             parent::save($translation, $language);
             return;
-        }
-
-        if ($this->exists($translation, $language)) {
-            throw new \Translator\Infra\Exception\UnableToSaveTranslationKeyAlreadyExists($translation, $language);
         }
 
         [$filename, $keys] = $target;
