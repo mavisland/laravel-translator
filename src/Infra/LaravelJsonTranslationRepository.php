@@ -112,10 +112,14 @@ class LaravelJsonTranslationRepository implements TranslationRepository
 
     private function writeFile(string $language): void
     {
-        $content = $this->fileCache[$language];
-        ksort($content);
-
         $filename = $this->getFileNameForLanguage($language);
+
+        // Read the on-disk values again before writing. Existing translations always win.
+        // This also protects against changes made after the in-memory cache was populated.
+        $existing = $this->readFile($language);
+        $content = array_replace($this->fileCache[$language], $existing);
+        ksort($content);
+        $this->fileCache[$language] = $content;
         $directory = dirname($filename);
 
         if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
