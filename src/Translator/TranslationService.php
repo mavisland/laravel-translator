@@ -18,8 +18,8 @@ class TranslationService
     }
 
     /**
-     * @throws InvalidDirectoriesConfiguration
-     * @throws InvalidExtensionsConfiguration
+     * @throws \Translator\Translator\Exception\InvalidDirectoriesConfiguration
+     * @throws \Translator\Translator\Exception\InvalidExtensionsConfiguration
      */
     public function scanAndSaveNewKeys(): void
     {
