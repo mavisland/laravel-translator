@@ -4,7 +4,7 @@ if (!function_exists('lang')) {
     /**
      * @codeCoverageIgnore
      * @param string[] $replace
-     * @return string|array<string|int|float>|null
+     * @return string|array<array-key, mixed>|null
      */
     function lang(string $key, array $replace = [], ?string $locale = null)
     {
@@ -24,12 +24,13 @@ if (!function_exists('glob_recursive')) {
             $files = [];
         }
 
-        $directories = glob(dirname($pattern) . '/*', GLOB_ONLYDIR | GLOB_NOSORT) ?? [];
+        $directories = glob(dirname($pattern) . '/*', GLOB_ONLYDIR | GLOB_NOSORT) ?: [];
 
         if (!$directories) {
             $directories = [];
         }
 
+        /** @var list<string> $directories */
         return array_reduce($directories, function (array $files, string $dir) use ($pattern, $flags): array {
             return array_merge(
                 $files,
