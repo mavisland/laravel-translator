@@ -1,11 +1,8 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace Translator\Translator;
-
-use Translator\Translator\Exception\InvalidDirectoriesConfiguration;
-use Translator\Translator\Exception\InvalidExtensionsConfiguration;
 
 class TranslationService
 {

@@ -2,20 +2,20 @@
 <ruleset>
     <file>./src</file>
     <file>./tests/Unit</file>
-
-
     <rule ref="Generic.Files.LineLength.TooLong">
         <type>error</type>
     </rule>
-
-
     <rule ref="PSR12"/>
     <rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes"/>
     <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses"/>
     <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint"/>
     <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint"/>
-
     <rule ref="Internal.NoCodeFound">
         <severity>0</severity>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes">
+        <properties>
+            <property name="spacesCountAroundEqualsSign" value="0"/>
+        </properties>
     </rule>
 </ruleset>
