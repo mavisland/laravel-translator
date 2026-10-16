@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Translator\Translator;
 
+use PhpParser\Node;
+use PhpParser\NodeFinder;
+use PhpParser\ParserFactory;
 use Translator\Translator\Exception\InvalidDirectoriesConfiguration;
 use Translator\Translator\Exception\InvalidExtensionsConfiguration;
 use Translator\Translator\Exception\InvalidFunctionsConfiguration;
@@ -80,44 +83,46 @@ class TranslationScanner
                 continue;
             }
 
-            $content = $this->getFileContent($file->getPathname());
-            foreach ($functions as $function) {
-                $translations = array_merge(
-                    $translations,
-                    $this->getKeysFromFunction($function, $content)
-                );
+            $content = file_get_contents($file->getPathname());
+            if ($content === false) {
+                throw new \RuntimeException('Unable to read source file: ' . $file->getPathname());
             }
+
+            $keys = str_ends_with($file->getFilename(), '.php')
+                && !str_ends_with($file->getFilename(), '.blade.php')
+                ? $this->getPhpKeys($content, $functions)
+                : $this->getTemplateKeys($content, $functions);
+            $translations = array_merge($translations, $keys);
         }
 
         return $translations;
     }
 
-    private function getFileContent(string $filePath): string
-    {
-        $content = file_get_contents($filePath) ?: '';
-
-        return str_replace("\n", ' ', $content);
-    }
-
     /**
+     * @param list<string> $functions
      * @return array<string, Translation>
      */
-    private function getKeysFromFunction(string $functionName, string $content): array
+    private function getPhpKeys(string $content, array $functions): array
     {
-        $function = preg_quote($functionName, '#');
-        $pattern = '#(?<![\w$>:\x5c])' . $function
-            . '\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*)\1\s*(?=,|\))#s';
-
-        preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
+        try {
+            $statements = (new ParserFactory())->createForNewestSupportedVersion()->parse($content);
+        } catch (\PhpParser\Error $exception) {
+            throw new \RuntimeException('Unable to parse PHP source: ' . $exception->getMessage(), 0, $exception);
+        }
 
         $keys = [];
-        foreach ($matches as $match) {
-            $quote = $match[1];
-            $raw = $match[2];
-            $key = $quote === '"'
-                ? stripcslashes($raw)
-                : str_replace(["\\'", "\\\\"], ["'", "\\"], $raw);
+        $calls = (new NodeFinder())->findInstanceOf($statements ?? [], Node\Expr\FuncCall::class);
+        foreach ($calls as $call) {
+            if (!$call->name instanceof Node\Name || !in_array($call->name->toString(), $functions, true)) {
+                continue;
+            }
 
+            $argument = $call->args[0] ?? null;
+            if (!$argument instanceof Node\Arg || !$argument->value instanceof Node\Scalar\String_) {
+                continue;
+            }
+
+            $key = $argument->value->value;
             if ($key !== '') {
                 $keys[$key] = new Translation($key, '');
             }
@@ -125,4 +130,33 @@ class TranslationScanner
 
         return $keys;
     }
+
+    /**
+     * @param list<string> $functions
+     * @return array<string, Translation>
+     */
+    private function getTemplateKeys(string $content, array $functions): array
+    {
+        $keys = [];
+        foreach ($functions as $functionName) {
+            $function = preg_quote($functionName, '#');
+            $pattern = '#(?<![\\w$>:\\x5c])' . $function
+                . '\\s*\\(\\s*([\\'"])((?:\\\\.|(?!\\1).)*)\\1\\s*(?=,|\\))#s';
+            preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
+
+            foreach ($matches as $match) {
+                $raw = $match[2];
+                $key = $match[1] === '"'
+                    ? stripcslashes($raw)
+                    : str_replace(["\\'", "\\\\"], ["'", "\\"], $raw);
+
+                if ($key !== '') {
+                    $keys[$key] = new Translation($key, '');
+                }
+            }
+        }
+
+        return $keys;
+    }
+
 }
