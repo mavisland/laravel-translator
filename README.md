@@ -90,3 +90,7 @@ This runs PHP_CodeSniffer, PHPStan, and PHPUnit. Run the checks before publishin
 ## Release
 
 After the tests pass, create and push a version tag (for example `v1.0.0`) and submit the public GitHub repository URL to [Packagist](https://packagist.org/packages/submit). Packagist publication is a separate step from pushing commits to GitHub.
+
+## Credits
+
+Originally created by **Thiago Cordeiro dos Santos**. This maintained fork is developed by **Tanju Yildiz**. The original MIT copyright notice is retained in `LICENSE` as required by its terms.
