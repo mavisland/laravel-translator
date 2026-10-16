@@ -46,31 +46,7 @@ class LaravelTranslationRepository extends LaravelJsonTranslationRepository
         }
 
         [$filename, $keys] = $target;
-        $data = $this->readPhp($filename);
-        $cursor =& $data;
-        $leaf = array_pop($keys);
-        foreach ($keys as $key) {
-            if (array_key_exists($key, $cursor) && !is_array($cursor[$key])) {
-                throw new \RuntimeException("Cannot insert nested translation under a scalar value: {$translation->getKey()}");
-            }
-            if (!isset($cursor[$key])) {
-                $cursor[$key] = [];
-            }
-            $cursor =& $cursor[$key];
-        }
-        $cursor[$leaf] = '';
-        unset($cursor);
-
-        $this->sortRecursive($data);
-        $directory = dirname($filename);
-        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-            throw new \RuntimeException("Unable to create translation directory: {$directory}");
-        }
-
-        $code = "<?php\n\nreturn " . var_export($data, true) . ";\n";
-        if (file_put_contents($filename, $code, LOCK_EX) === false) {
-            throw new \RuntimeException("Unable to write translation file: {$filename}");
-        }
+        (new PhpTranslationFileEditor())->add($filename, $keys);
     }
 
     /** @return array{string, list<string>}|null */
