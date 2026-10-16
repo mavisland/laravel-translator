@@ -1,9 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Infra;
 
 use Translator\Infra\Exception\InvalidTranslationFile;
-use Translator\Infra\Exception\TranslationFileDoesNotExistForLanguage;
 use Translator\Infra\Exception\UnableToSaveTranslationKeyAlreadyExists;
 use Translator\Translator\ConfigLoader;
 use Translator\Translator\Translation;
