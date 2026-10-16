@@ -9,7 +9,7 @@ return [
         app_path(),
         resource_path('views'),
     ],
-    'output' => resource_path('lang'),
+    'output' => lang_path(),
     'extensions' => ['php'],
     'functions' => ['lang', '__'],
     'container' => [
