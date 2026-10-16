@@ -140,8 +140,8 @@ class TranslationScanner
         $keys = [];
         foreach ($functions as $functionName) {
             $function = preg_quote($functionName, '#');
-            $pattern = '#(?<![\\w$>:\\x5c])' . $function
-                . '\\s*\\(\\s*([\\'"])((?:\\\\.|(?!\\1).)*)\\1\\s*(?=,|\\))#s';
+            $pattern = '#(?<![\w$>:\x5c])' . $function
+                . '\s*\(\s*([\'"])((?:\\\\.|(?!\1).)*)\1\s*(?=,|\))#s';
             preg_match_all($pattern, $content, $matches, PREG_SET_ORDER);
 
             foreach ($matches as $match) {
@@ -158,5 +158,4 @@ class TranslationScanner
 
         return $keys;
     }
-
 }
