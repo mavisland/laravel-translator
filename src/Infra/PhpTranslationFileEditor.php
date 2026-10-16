@@ -74,8 +74,7 @@ final class PhpTranslationFileEditor
         }
 
         foreach ($array->items as $item) {
-            if (!$item instanceof Node\Expr\ArrayItem ||
-                !$item->key instanceof Node\Scalar\String_ ||
+            if (!$item->key instanceof Node\Scalar\String_ ||
                 $item->key->value !== $key) {
                 continue;
             }
