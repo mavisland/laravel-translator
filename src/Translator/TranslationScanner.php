@@ -31,14 +31,12 @@ class TranslationScanner
             throw new InvalidFunctionsConfiguration();
         }
 
-        $ext = implode(',', $extensions);
-
         return array_reduce(
             $directories,
-            function (array $collection, string $directory) use ($ext, $functions): array {
+            function (array $collection, string $directory) use ($extensions, $functions): array {
                 return array_merge(
                     $collection,
-                    $this->scanDirectory($directory, $ext, $functions)
+                    $this->scanDirectory($directory, $extensions, $functions)
                 );
             },
             []
@@ -49,26 +47,44 @@ class TranslationScanner
      * @param string[] $functions
      * @return Translation[]
      */
-    private function scanDirectory(string $path, string $extensions, array $functions): array
+    private function scanDirectory(string $path, array $extensions, array $functions): array
     {
-        $files = glob_recursive("{$path}/*.{{$extensions}}", GLOB_BRACE);
+        if (!is_dir($path)) {
+            return [];
+        }
 
-        return array_reduce($files, function (array $keys, $file) use ($functions): array {
-            $content = $this->getFileContent($file);
+        $translations = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS)
+        );
 
-            $keysFromFunctions = array_reduce(
-                $functions,
-                function (array $keys, string $function) use ($content): array {
-                    return array_merge($keys, $this->getKeysFromFunction($function, $content));
-                },
-                []
-            );
+        foreach ($iterator as $file) {
+            if (!$file->isFile()) {
+                continue;
+            }
 
-            return array_merge(
-                $keys,
-                $keysFromFunctions
-            );
-        }, []);
+            $matchesExtension = false;
+            foreach ($extensions as $extension) {
+                if (str_ends_with($file->getFilename(), '.' . ltrim($extension, '.'))) {
+                    $matchesExtension = true;
+                    break;
+                }
+            }
+
+            if (!$matchesExtension) {
+                continue;
+            }
+
+            $content = $this->getFileContent($file->getPathname());
+            foreach ($functions as $function) {
+                $translations = array_merge(
+                    $translations,
+                    $this->getKeysFromFunction($function, $content)
+                );
+            }
+        }
+
+        return $translations;
     }
 
     private function getFileContent(string $filePath): string
