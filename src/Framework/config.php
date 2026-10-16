@@ -1,7 +1,7 @@
 <?php declare(strict_types=1);
 
 use Translator\Framework\LaravelConfigLoader;
-use Translator\Infra\LaravelJsonTranslationRepository;
+use Translator\Infra\LaravelTranslationRepository;
 
 return [
     'languages' => ['pt-br', 'es'],
@@ -14,6 +14,6 @@ return [
     'functions' => ['lang', '__'],
     'container' => [
         'config_loader' => LaravelConfigLoader::class,
-        'translation_repository' => LaravelJsonTranslationRepository::class,
+        'translation_repository' => LaravelTranslationRepository::class,
     ],
 ];
