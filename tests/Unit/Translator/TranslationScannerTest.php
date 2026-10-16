@@ -208,5 +208,4 @@ PHP
             rmdir($directory);
         }
     }
-
 }
