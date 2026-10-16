@@ -49,7 +49,10 @@ class LaravelTranslationRepository extends LaravelJsonTranslationRepository
         $data = $this->readPhp($filename);
         $cursor =& $data;
         foreach ($keys as $key) {
-            if (!isset($cursor[$key]) || !is_array($cursor[$key])) {
+            if (array_key_exists($key, $cursor) && !is_array($cursor[$key])) {
+                throw new \RuntimeException("Cannot insert nested translation under a scalar value: {$translation->getKey()}");
+            }
+            if (!isset($cursor[$key])) {
                 $cursor[$key] = [];
             }
             $cursor =& $cursor[$key];
