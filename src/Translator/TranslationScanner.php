@@ -12,7 +12,7 @@ class TranslationScanner
      * @param string[] $extensions
      * @param string[] $directories
      * @param string[] $functions
-     * @return Translation[]
+     * @return array<string, Translation>
      * @throws InvalidDirectoriesConfiguration
      * @throws InvalidExtensionsConfiguration
      * @throws InvalidFunctionsConfiguration
@@ -47,6 +47,10 @@ class TranslationScanner
      * @param string[] $functions
      * @return Translation[]
      */
+    /** @param list<string> $extensions
+     *  @param list<string> $functions
+     *  @return array<string, Translation>
+     */
     private function scanDirectory(string $path, array $extensions, array $functions): array
     {
         if (!is_dir($path)) {
@@ -59,7 +63,7 @@ class TranslationScanner
         );
 
         foreach ($iterator as $file) {
-            if (!$file->isFile()) {
+            if (!$file instanceof \SplFileInfo || !$file->isFile()) {
                 continue;
             }
 
@@ -89,13 +93,13 @@ class TranslationScanner
 
     private function getFileContent(string $filePath): string
     {
-        $content = (string) file_get_contents($filePath) ?? '';
+        $content = file_get_contents($filePath) ?: '';
 
         return str_replace("\n", ' ', $content);
     }
 
     /**
-     * @return string[]
+     * @return array<string, Translation>
      */
     private function getKeysFromFunction(string $functionName, string $content): array
     {
