@@ -35,7 +35,7 @@ class TranslationScanner
         foreach ($directories as $directory) {
             $translations = array_merge(
                 $translations,
-                $this->scanDirectory($directory, $extensions, $functions)
+                $this->scanDirectory($directory, array_values($extensions), array_values($functions))
             );
         }
 
