@@ -1,7 +1,7 @@
 {
-  "name": "thiagocordeiro/laravel-translator",
-  "description": "Search translation keys and insert into json to be translated",
-  "type": "project",
+  "name": "mavisland/laravel-translator",
+  "description": "Synchronize missing Laravel translation keys in JSON language files",
+  "type": "library",
   "license": "MIT",
   "authors": [
     {
@@ -10,14 +10,14 @@
     }
   ],
   "require": {
-    "php": "^7.4|^8.0",
+    "php": "^8.2",
     "ext-json": "*",
-    "laravel/framework": ">=5.4.0"
+    "laravel/framework": "^11.0 || ^12.0 || ^13.0"
   },
   "require-dev": {
-    "slevomat/coding-standard": "^6.0",
-    "phpstan/phpstan": "^0.12",
-    "phpunit/phpunit": "^9.0"
+    "slevomat/coding-standard": "^8.0",
+    "phpstan/phpstan": "^2.0",
+    "phpunit/phpunit": "^11.0 || ^12.0"
   },
   "scripts": {
     "test:cs": "vendor/bin/phpcs --colors -ps",
@@ -30,9 +30,6 @@
     ]
   },
   "config": {
-    "platform": {
-      "php": "7.4.28"
-    },
     "allow-plugins": {
       "dealerdirect/phpcodesniffer-composer-installer": true
     }
