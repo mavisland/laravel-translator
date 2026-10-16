@@ -35,7 +35,7 @@ class LaravelConfigLoader implements ConfigLoader
      */
     public function useKeysAsDefaultValue(): bool
     {
-        return !! $this->load('use_keys_as_default_value');
+        return !!$this->load('use_keys_as_default_value');
     }
 
     /**

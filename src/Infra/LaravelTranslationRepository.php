@@ -59,9 +59,11 @@ class LaravelTranslationRepository extends LaravelJsonTranslationRepository
         }
 
         [$group, $nested] = explode('.', $key, 2);
-        if (!preg_match('/^[a-zA-Z0-9_-]+$/D', $group) ||
+        if (
+            !preg_match('/^[a-zA-Z0-9_-]+$/D', $group) ||
             !preg_match('/^[a-zA-Z0-9_.-]+$/D', $nested) ||
-            !preg_match('/^[a-zA-Z0-9_-]+$/D', $language)) {
+            !preg_match('/^[a-zA-Z0-9_-]+$/D', $language)
+        ) {
             return null;
         }
 

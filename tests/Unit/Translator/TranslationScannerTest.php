@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Tests\Unit\Translator;
 
@@ -148,7 +150,9 @@ class TranslationScannerTest extends TestCase
         $filename = $directory . '/sample.php';
 
         try {
-            file_put_contents($filename, <<<'PHP'
+            file_put_contents(
+                $filename,
+                <<<'PHP'
 <?php
 __('messages.title');
 __('messages.' . $field);

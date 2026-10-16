@@ -25,7 +25,7 @@ class TranslatorServiceProvider extends ServiceProvider
 
     private function setupConfigs(): void
     {
-        $default = __DIR__."/config.php";
+        $default = __DIR__ . "/config.php";
         $custom = base_path("config/translator.php");
 
         $this->mergeConfigFrom($default, 'translator');
