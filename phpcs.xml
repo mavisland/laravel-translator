@@ -8,7 +8,6 @@
         <type>error</type>
     </rule>
 
-    <rule ref="Squiz.Strings.ConcatenationSpacing"/>
 
     <rule ref="PSR12"/>
     <rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes"/>
