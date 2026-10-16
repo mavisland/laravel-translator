@@ -16,7 +16,7 @@ class TranslatorServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
-            $this->commands([TranslatorCommand::class]);
+            $this->commands([TranslatorCommand::class, TranslatorUnusedCommand::class]);
         }
 
         $this->setupConfigs();
