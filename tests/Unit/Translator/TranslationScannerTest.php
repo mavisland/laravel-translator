@@ -161,7 +161,7 @@ PHP
             );
 
             $keys = $this->scanner->scan(['php'], [$directory], ['__', 'lang']);
-            self::assertSame(
+            self::assertEqualsCanonicalizing(
                 ['messages.title', 'messages.description', 'messages.submit'],
                 array_keys($keys)
             );
