@@ -6,7 +6,9 @@ use Translator\Framework\LaravelConfigLoader;
 use Translator\Infra\LaravelTranslationRepository;
 
 return [
-    'languages' => ['pt-br', 'es'],
+    'languages' => ['tr', 'en'],
+    'default_language' => 'tr',
+    'use_keys_as_default_value' => false,
     'directories' => [
         app_path(),
         resource_path('views'),
