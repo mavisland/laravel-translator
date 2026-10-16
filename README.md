@@ -8,10 +8,10 @@ Supports PHP 8.2+ and Laravel 11, 12, and 13.
 
 ```bash
 composer require mavisland/laravel-translator
-php artisan vendor:publish --provider="Translator\\Framework\\TranslatorServiceProvider"
+php artisan vendor:publish --tag=translator-config
 ```
 
-For development installations before a stable release, use `composer require mavisland/laravel-translator:dev-develop` with an appropriate Composer repository configuration.
+The publish command creates `config/translator.php`. Edit this file to configure the languages and directories to scan.
 
 ## Commands
 
@@ -27,7 +27,7 @@ php artisan translator:unused
 
 ## Configuration
 
-Publish `config/translator.php` using the installation command above, then customize it for your project:
+Generate `config/translator.php` with `php artisan vendor:publish --tag=translator-config`, then edit the generated file:
 
 ```php
 return [
@@ -93,4 +93,4 @@ After the tests pass, create and push a version tag (for example `v1.0.0`) and s
 
 ## Credits
 
-Originally created by **Thiago Cordeiro dos Santos**. This maintained fork is developed by **Tanju Yildiz**. The original MIT copyright notice is retained in `LICENSE` as required by its terms.
+Originally created by **Thiago Cordeiro dos Santos**. This maintained fork is developed by **Tanju Yildiz**. The original MIT copyright notice is retained in `LICENSE` alongside the current maintainer’s copyright notice, as required by its terms.
