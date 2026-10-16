@@ -16,7 +16,11 @@ class LaravelJsonTranslationRepositoryTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->translationPath = realpath(__DIR__ . '/../../Fixtures/translations');
+        $this->translationPath = sys_get_temp_dir() . '/laravel-translator-' . bin2hex(random_bytes(8));
+        mkdir($this->translationPath, 0700);
+        foreach (glob(__DIR__ . '/../../Fixtures/translations/*.json') ?: [] as $fixture) {
+            copy($fixture, $this->translationPath . '/' . basename($fixture));
+        }
 
         $configLoader = $this->setupConfigLoader();
 
@@ -25,8 +29,17 @@ class LaravelJsonTranslationRepositoryTest extends TestCase
         $this->repository = new LaravelJsonTranslationRepository($configLoader);
     }
 
+    protected function tearDown(): void
+    {
+        foreach (glob($this->translationPath . '/*') ?: [] as $file) {
+            unlink($file);
+        }
+        rmdir($this->translationPath);
+        parent::tearDown();
+    }
+
     /**
-     * @return \PHPUnit\Framework\MockObject\MockObject|ConfigLoader
+     * @return \\PHPUnit\Framework\MockObject\MockObject|ConfigLoader
      */
     protected function setupConfigLoader()
     {
