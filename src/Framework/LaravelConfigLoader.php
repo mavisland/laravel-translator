@@ -79,7 +79,7 @@ class LaravelConfigLoader implements ConfigLoader
             return [];
         }
 
-        return $values;
+        return array_values(array_filter($values, 'is_string'));
     }
 
     private function loadConfigInString(string $key): string
@@ -94,9 +94,8 @@ class LaravelConfigLoader implements ConfigLoader
     }
 
     /**
-     * @return string|string[]
      */
-    private function load(string $key)
+    private function load(string $key): mixed
     {
         return config("translator.{$key}");
     }
