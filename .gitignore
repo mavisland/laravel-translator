@@ -6,3 +6,4 @@
 .node-version
 .php-version
 .phpunit.result.cache
+/.phpunit.cache/
