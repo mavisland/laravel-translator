@@ -1,6 +1,6 @@
 {
   "name": "mavisland/laravel-translator",
-  "description": "Synchronize missing Laravel translation keys in JSON language files",
+  "description": "Synchronize missing Laravel PHP and JSON translation keys",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -12,7 +12,8 @@
   "require": {
     "php": "^8.2",
     "ext-json": "*",
-    "laravel/framework": "^11.0 || ^12.0 || ^13.0"
+    "laravel/framework": "^11.0 || ^12.0 || ^13.0",
+    "nikic/php-parser": "^5.0"
   },
   "require-dev": {
     "slevomat/coding-standard": "^8.0",
