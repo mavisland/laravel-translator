@@ -31,16 +31,15 @@ class TranslationScanner
             throw new InvalidFunctionsConfiguration();
         }
 
-        return array_reduce(
-            $directories,
-            function (array $collection, string $directory) use ($extensions, $functions): array {
-                return array_merge(
-                    $collection,
-                    $this->scanDirectory($directory, $extensions, $functions)
-                );
-            },
-            []
-        );
+        $translations = [];
+        foreach ($directories as $directory) {
+            $translations = array_merge(
+                $translations,
+                $this->scanDirectory($directory, $extensions, $functions)
+            );
+        }
+
+        return $translations;
     }
 
     /**
