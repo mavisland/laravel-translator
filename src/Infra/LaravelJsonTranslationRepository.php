@@ -122,11 +122,13 @@ class LaravelJsonTranslationRepository implements TranslationRepository
             throw new \RuntimeException("Unable to create translation directory: {$directory}");
         }
 
-        if (file_put_contents(
-            $filename,
-            json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n",
-            LOCK_EX
-        ) === false) {
+        if (
+            file_put_contents(
+                $filename,
+                json_encode($content, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . "\n",
+                LOCK_EX
+            ) === false
+        ) {
             throw new \RuntimeException("Unable to write translation file: {$filename}");
         }
     }

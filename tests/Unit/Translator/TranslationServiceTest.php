@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Tests\Unit\Translator;
 
@@ -71,7 +73,7 @@ class TranslationServiceTest extends TestCase
         $this->service->scanAndSaveNewKeys();
 
         $expected = array_map(
-            static fn (array $item): string => $item[0]->getKey(),
+            static fn(array $item): string => $item[0]->getKey(),
             $translations
         );
         self::assertEqualsCanonicalizing($expected, $saved);

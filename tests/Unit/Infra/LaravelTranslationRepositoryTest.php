@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Translator\Tests\Unit\Infra;
 
@@ -82,7 +84,9 @@ class LaravelTranslationRepositoryTest extends TestCase
     {
         mkdir($this->directory . '/tr');
         $filename = $this->directory . '/tr/messages.php';
-        file_put_contents($filename, <<<'PHP'
+        file_put_contents(
+            $filename,
+            <<<'PHP'
 <?php
 
 return [
